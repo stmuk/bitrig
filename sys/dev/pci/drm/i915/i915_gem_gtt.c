@@ -616,14 +616,10 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 			bus_addr_t ptaddr;
 	
 			ptaddr = VM_PAGE_TO_PHYS(obj->pages[i]);
-#if 1
+			/* XXX hack */
 			dmar_ptmap(dev_priv->dmat, ptaddr);
-			sc->sc_methods->bind_page(sc->sc_chipc, addr,
-			    ptaddr, flags);
-#else
-			sc->sc_methods->bind_page(sc->sc_chipc, addr,
-			    VM_PAGE_TO_PHYS(obj->pages[i]), flags);
-#endif
+			sc->sc_methods->bind_page(sc->sc_chipc, addr, ptaddr,
+			    flags);
 			addr += PAGE_SIZE;
 		}
 	} else {
