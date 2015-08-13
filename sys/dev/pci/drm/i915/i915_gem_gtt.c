@@ -45,6 +45,8 @@ typedef uint32_t gtt_pte_t;
 #define GEN6_PTE_CACHE_LLC_MLC		(3 << 1)
 #define GEN6_PTE_ADDR_ENCODE(addr)	GEN6_GTT_ADDR_ENCODE(addr)
 
+extern void dmar_ptmap(bus_dma_tag_t tag, bus_addr_t addr);
+
 static inline gtt_pte_t pte_encode(struct drm_device *dev,
 				   bus_addr_t addr,
 				   enum i915_cache_level level)
@@ -534,7 +536,7 @@ static void gen6_ggtt_bind_object(struct drm_i915_gem_object *obj,
 static void gen6_ggtt_bind_object(struct drm_i915_gem_object *obj,
 				  enum i915_cache_level level)
 {
-	struct drm_device *dev = obj->base.dev;
+	struct drm_device *dev = obj->base.dev;	
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	const int first_entry = obj->gtt_space->start >> PAGE_SHIFT;
 	const int max_entries = dev_priv->mm.gtt->gtt_total_entries - first_entry;
@@ -545,6 +547,8 @@ static void gen6_ggtt_bind_object(struct drm_i915_gem_object *obj,
 	for (i = 0; i < page_count; i++) {
 		struct vm_page *page = obj->pages[i];
 		addr = VM_PAGE_TO_PHYS(page);
+		/* hack for now... */
+		dmar_ptmap(dev_priv->dmat, addr);
 		bus_space_write_4(dev_priv->bst, dev_priv->mm.gtt->gtt,
 		    (i + first_entry) * sizeof(gtt_pte_t),
 		    pte_encode(dev, addr, level));
@@ -598,7 +602,8 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 			      enum i915_cache_level cache_level)
 {
-	struct drm_device *dev = obj->base.dev;
+	struct drm_device *dev = obj->base.dev;	
+	struct drm_i915_private *dev_priv = dev->dev_private;
 	if (INTEL_INFO(dev)->gen < 6) {
 		unsigned int flags = (cache_level == I915_CACHE_NONE) ?
 			0 : BUS_DMA_COHERENT;
@@ -608,8 +613,17 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 		int i;
 
 		for (i = 0; i < page_count; i++) {
+			bus_addr_t ptaddr;
+	
+			ptaddr = VM_PAGE_TO_PHYS(obj->pages[i]);
+#if 1
+			dmar_ptmap(dev_priv->dmat, ptaddr);
+			sc->sc_methods->bind_page(sc->sc_chipc, addr,
+			    ptaddr, flags);
+#else
 			sc->sc_methods->bind_page(sc->sc_chipc, addr,
 			    VM_PAGE_TO_PHYS(obj->pages[i]), flags);
+#endif
 			addr += PAGE_SIZE;
 		}
 	} else {
@@ -738,7 +752,7 @@ static int setup_scratch_page(struct drm_device *dev)
 		return -ENOMEM;
 
 	dev_priv->mm.gtt->scratch_page = page;
-	dev_priv->mm.gtt->scratch_page_dma = page->segs[0].ds_addr;
+	dev_priv->mm.gtt->scratch_page_dma = page->map->dm_segs[0].ds_addr;
 
 	return 0;
 }
