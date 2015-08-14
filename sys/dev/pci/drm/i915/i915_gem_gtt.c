@@ -602,7 +602,7 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 			      enum i915_cache_level cache_level)
 {
-	struct drm_device *dev = obj->base.dev;	
+	struct drm_device *dev = obj->base.dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	if (INTEL_INFO(dev)->gen < 6) {
 		unsigned int flags = (cache_level == I915_CACHE_NONE) ?
@@ -614,10 +614,17 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 
 		for (i = 0; i < page_count; i++) {
 			bus_addr_t ptaddr;
-	
+
 			ptaddr = VM_PAGE_TO_PHYS(obj->pages[i]);
 			/* XXX hack */
 			dmar_ptmap(dev_priv->dmat, ptaddr);
+			addr += PAGE_SIZE;
+		}
+		addr = sc->sc_apaddr + obj->gtt_space->start;
+		for (i = 0; i < page_count; i++) {
+			bus_addr_t ptaddr;
+
+			ptaddr = VM_PAGE_TO_PHYS(obj->pages[i]);
 			sc->sc_methods->bind_page(sc->sc_chipc, addr, ptaddr,
 			    flags);
 			addr += PAGE_SIZE;
