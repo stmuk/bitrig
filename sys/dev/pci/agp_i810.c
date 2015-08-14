@@ -820,9 +820,8 @@ intagp_write_gtt(struct agp_i810_softc *isc, bus_size_t off, paddr_t v)
 		/* FALLTHROUGH */
 	case CHIP_G33:
 	case CHIP_PINEVIEW:
-		bus_space_write_4(isc->gtt_map->bst, isc->gtt_map->bsh,
-		    wroff, pte);
-		return;
+		baseoff = 0;
+		break;
 	case CHIP_I965:
 		baseoff = AGP_I965_GTT;
 		break;
@@ -834,5 +833,6 @@ intagp_write_gtt(struct agp_i810_softc *isc, bus_size_t off, paddr_t v)
 		baseoff = AGP_I810_GTT;
 		break;
 	}
-	bus_space_write_4(isc->map->bst, isc->map->bsh, baseoff + wroff, pte);
+
+	WRITE4(baseoff + wroff, pte);
 }
