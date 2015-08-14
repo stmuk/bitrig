@@ -616,11 +616,9 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
 			bus_addr_t ptaddr;
 
 			ptaddr = VM_PAGE_TO_PHYS(obj->pages[i]);
-			/* XXX hack */
+			/* XXX hack, 1x1 map */
 			dmar_ptmap(dev_priv->dmat, ptaddr);
-			addr += PAGE_SIZE;
 		}
-		addr = sc->sc_apaddr + obj->gtt_space->start;
 		for (i = 0; i < page_count; i++) {
 			bus_addr_t ptaddr;
 
