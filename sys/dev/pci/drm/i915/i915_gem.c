@@ -79,7 +79,8 @@ static void i915_gem_shrink_all(struct drm_i915_private *dev_priv);
 #endif
 static void i915_gem_object_truncate(struct drm_i915_gem_object *obj);
 
-extern int ticks;
+extern int	ticks;
+extern void	dmar_ptmap(bus_dma_tag_t tag, bus_addr_t addr);
 
 static inline void i915_gem_object_fence_lost(struct drm_i915_gem_object *obj)
 {
@@ -1908,10 +1909,13 @@ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
 	struct page *page;
 	gfp_t gfp;
 #else
+	struct drm_device *dev = obj->base.dev;
+	struct drm_i915_private *dev_priv = dev->dev_private;
 	int page_count, i;
 	struct vm_page **st;
 	struct pglist plist;
 	struct vm_page *page;
+	uint64_t ptaddr;
 #endif
 
 	/* Assert that the object is not currently in any GPU domain. As it
@@ -1982,6 +1986,8 @@ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
 
 	i = 0;
 	TAILQ_FOREACH(page, &plist, pageq) {
+		ptaddr = VM_PAGE_TO_PHYS(page);
+		dmar_ptmap(dev_priv->dmat, ptaddr);
 		st[i] = page;
 		i++;
 	}
