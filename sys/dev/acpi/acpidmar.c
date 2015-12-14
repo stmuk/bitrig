@@ -402,7 +402,8 @@ domain_map_page(struct domain *dom, vaddr_t va, paddr_t pa, int flags)
 	}
 }
 
-static void dmar_dumpseg(bus_dma_tag_t tag, int nseg, bus_dma_segment_t *segs,
+static void
+dmar_dumpseg(bus_dma_tag_t tag, int nseg, bus_dma_segment_t *segs,
     const char *lbl)
 {
 	struct domain	*dom = tag->_cookie;
@@ -1286,9 +1287,9 @@ domain_create(struct iommu_softc *iommu, int did)
 
 	/* Setup DMA */
 	dom->dmat._cookie = dom;
-	dom->dmat._dmamap_create    = dmar_dmamap_create;  	// nop
-	dom->dmat._dmamap_destroy   = dmar_dmamap_destroy; 	// nop
-	dom->dmat._dmamap_load      = dmar_dmamap_load;    	// lm
+	dom->dmat._dmamap_create    = dmar_dmamap_create;	// nop
+	dom->dmat._dmamap_destroy   = dmar_dmamap_destroy;	// nop
+	dom->dmat._dmamap_load      = dmar_dmamap_load;		// lm
 	dom->dmat._dmamap_load_mbuf = dmar_dmamap_load_mbuf;	// lm
 	dom->dmat._dmamap_load_uio  = dmar_dmamap_load_uio;	// lm
 	dom->dmat._dmamap_load_raw  = dmar_dmamap_load_raw;	// lm
@@ -1699,8 +1700,8 @@ acpidmar_activate(struct device *self, int act)
 
 	switch (act) {
 	case DVACT_RESUME:
-		printf("iommu resume\n");
 		TAILQ_FOREACH(iommu, &sc->sc_drhds, link) {
+			printf("iommu%d resume\n", iommu->id);
 			iommu_flush_write_buffer(iommu);
 			iommu_set_rtaddr(iommu, iommu->rtaddr);
 			iommu_writel(iommu, DMAR_FEDATA_REG, iommu->fedata);
@@ -1717,7 +1718,7 @@ acpidmar_activate(struct device *self, int act)
 		break;
 	case DVACT_SUSPEND:
 		TAILQ_FOREACH(iommu, &sc->sc_drhds, link) {
-			printf("iommu suspend\n");
+			printf("iommu%d suspend\n", iommu->id);
 			if (iommu->flags & IOMMU_FLAGS_BAD)
 				continue;
 			iommu->flags |= IOMMU_FLAGS_SUSPEND;
@@ -1934,6 +1935,7 @@ iommu_showpte(uint64_t ptep, int lvl, uint64_t base)
 		if (lvl == 12) {
 			printf("   %3llx %.16llx = %.16llx %c%c %s\n",
 			    i, nb, pb,
+			    pte[i].val == PTE_R ? 'r' : ' ',
 			    pte[i].val & PTE_W ? 'w' : ' ',
 			    (nb == pb) ? " ident" : "");
 			return;
@@ -1971,7 +1973,6 @@ iommu_showcfg(struct iommu_softc *iommu, int sid)
 			tag = pci_make_tag(NULL, i, (j >> 3), j & 0x7);
 			clc = pci_conf_read(NULL, tag, 0x08) >> 8;
 			printf("  %.2x:%.2x.%x lvl:%d did:%.4x tt:%d ptep:%.16llx flag:%x cc:%.6x\n",
-			    i, (j>> 3), j & 7,
 			    i, (j >> 3), j & 7,
 			    context_address_width(ctx),
 			    context_domain_id(ctx),
