@@ -94,7 +94,6 @@
 	_SYSCALL_HIDDEN(x,y);						\
 	mov r15, r14
 
-
 #define RSYSCALL_NOERROR(x)						\
 	PSEUDO_NOERROR(x,x)
 

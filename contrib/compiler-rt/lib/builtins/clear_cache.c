@@ -31,6 +31,7 @@
 #endif
 
 #if defined(__OpenBSD__) || defined(__Bitrig__)
+#include <sys/types.h>
 # if defined(__arm__)
 #include <machine/asm.h>
 #include <sys/syscall.h>
