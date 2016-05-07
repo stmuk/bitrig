@@ -51,6 +51,7 @@ LDADD=	-lcurses
 BINMODE=2555
 
 beforeinstall:
+	 ${INSTALL} -d ${DESTDIR}/usr/share/games/larn ${DESTDIR}/var/games/larn
 	(cd ${.CURDIR}/datfiles; ${INSTALL} ${INSTALL_COPY} -o ${BINOWN} -g ${BINGRP} \
 	    -m 444 larnmaze larnopts larn.help \
 	    ${DESTDIR}/usr/share/games/larn)
