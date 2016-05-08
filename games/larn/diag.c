@@ -10,6 +10,7 @@ static char rcsid[] = "$OpenBSD: diag.c,v 1.4 2000/06/29 07:55:40 pjanzen Exp $"
 #include <sys/times.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include "header.h"
 #include "extern.h"
